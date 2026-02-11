@@ -1,0 +1,3 @@
+name: Sync
+on: {schedule: [{cron: "0 */6 * * *"}]}
+jobs:{sync:{runs-on:ubuntu-latest,steps:[{name:Sync,run:"gh repo list ram133 --limit 200 --json name -q '.[].name' | while read r;do gh repo sync ram133/$r;done"}]}}

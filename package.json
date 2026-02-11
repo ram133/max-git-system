@@ -1,0 +1,13 @@
+{
+  "name": "max-git-system",
+  "version": "1.0.0",
+  "description": "Automation-first orchestration system for the ram133 GitHub ecosystem.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

@@ -1,0 +1,3 @@
+name: Backup
+on: {schedule: [{cron: "0 0 * * *"}]}
+jobs:{backup:{runs-on:ubuntu-latest,steps:[{name:Backup,run:"echo Backups run locally"}]}}
