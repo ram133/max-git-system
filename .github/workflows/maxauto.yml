@@ -1,0 +1,25 @@
+name: maxauto
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "15 * * * *"
+
+jobs:
+  auto-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Auto task
+        env:
+          MAXSYSTEM_PAT: ${{ secrets.MAXSYSTEM_PAT }}
+        run: |
+          echo "Running maxauto..."
+          echo "Token available: $([[ -n "$MAXSYSTEM_PAT" ]] && echo yes || echo no)"
+          echo "Auto complete."
