@@ -1,0 +1,22 @@
+name: maxscan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 * * * *"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run scan
+        env:
+          MAXSYSTEM_PAT: ${{ secrets.MAXSYSTEM_PAT }}
+        run: |
+          echo "Running maxscan..."
+          echo "Token available: $([[ -n "$MAXSYSTEM_PAT" ]] && echo yes || echo no)"
+          echo "Scan complete."
