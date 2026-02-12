@@ -1,0 +1,49 @@
+.github/workflows/max_godmode.yml
+name: MAX Godmode Autogen
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  godmode:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: |
+          npm install
+          npm install -D ts-node typescript
+
+      - name: Run MAX Godmode
+        env:
+          MAX_GODMODE_CONFIG: >
+            {
+              "mode": "generate_all",
+              "targetDir": "./modules"
+            }
+        run: |
+          npx ts-node scripts/max_godmode.ts
+
+      - name: Commit changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "chore: auto-regenerate MAX modules"
+            git push
+          fi
