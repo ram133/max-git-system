@@ -1,0 +1,22 @@
+name: maxai
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 * * * *"
+
+jobs:
+  ai-tasks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run AI tasks
+        env:
+          MAXSYSTEM_PAT: ${{ secrets.MAXSYSTEM_PAT }}
+        run: |
+          echo "Running maxai..."
+          echo "Token available: $([[ -n "$MAXSYSTEM_PAT" ]] && echo yes || echo no)"
+          echo "AI tasks complete."
