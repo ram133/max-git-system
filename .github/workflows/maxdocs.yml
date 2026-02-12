@@ -1,0 +1,41 @@
+name: MaxDocs
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [maxdocs_run]
+  schedule:
+    - cron: "10 */6 * * *"   # Runs every 6 hours
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Documentation
+        run: node scripts/generate-docs.js
+
+      - name: Commit & Push Docs
+        run: |
+          git config user.name "maxsuite"
+          git config user.email "actions@github.com"
+          git add docs/
+          git add README.md
+          git commit -m "Documentation updated by MaxDocs"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Summary
+        run: echo "MaxDocs generated and updated documentation across the ecosystem."
