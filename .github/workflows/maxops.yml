@@ -1,0 +1,43 @@
+name: MaxOps
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [maxops_run]
+  schedule:
+    - cron: "*/30 * * * *"   # Runs every 30 minutes
+
+jobs:
+  monitor-and-heal:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Health Checks
+        run: node scripts/health-check.js
+
+      - name: Auto-Heal Services
+        run: node scripts/auto-heal.js
+
+      - name: Commit & Push Ops Logs
+        run: |
+          git config user.name "maxsuite"
+          git config user.email "actions@github.com"
+          git add ops-logs/
+          git commit -m "Ops logs updated by MaxOps"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Summary
+        run: echo "MaxOps completed monitoring and self-healing tasks."
