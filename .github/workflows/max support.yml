@@ -1,0 +1,32 @@
+name: MaxSupport
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [maxsupport_run]
+  schedule:
+    - cron: "55 */12 * * *"
+
+jobs:
+  generate-support:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - run: node scripts/generate-support.js
+
+      - run: |
+          git config user.name "maxsuite"
+          git config user.email "actions@github.com"
+          git add support/
+          git commit -m "Support docs updated by MaxSupport"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
