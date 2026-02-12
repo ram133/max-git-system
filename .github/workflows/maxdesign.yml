@@ -1,0 +1,32 @@
+name: MaxDesign
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [maxdesign_run]
+  schedule:
+    - cron: "40 */8 * * *"
+
+jobs:
+  generate-design-assets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - run: node scripts/generate-design.js
+
+      - run: |
+          git config user.name "maxsuite"
+          git config user.email "actions@github.com"
+          git add design/
+          git commit -m "Design assets updated by MaxDesign"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
