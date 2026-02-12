@@ -1,0 +1,40 @@
+name: MaxLegal
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [maxlegal_run]
+  schedule:
+    - cron: "25 */12 * * *"   # Runs every 12 hours
+
+jobs:
+  generate-legal:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Legal Documents
+        run: node scripts/generate-legal.js
+
+      - name: Commit & Push Legal Updates
+        run: |
+          git config user.name "maxsuite"
+          git config user.email "actions@github.com"
+          git add legal/
+          git commit -m "Legal documents updated by MaxLegal"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Summary
+        run: echo "MaxLegal generated and updated legal & compliance documents."
