@@ -1,0 +1,39 @@
+name: MaxServe
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [maxserve_run]
+  schedule:
+    - cron: "0 */4 * * *"   # Runs every 4 hours
+
+jobs:
+  deploy-services:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Service Artifacts
+        run: npm run build:services
+
+      - name: Deploy to Server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd /var/www/services
+          git pull
+          npm install --production
+          pm2 restart all
+          EOF
+
+      - name: Summary
+        run: echo "MaxServe deployed and restarted all active services."
