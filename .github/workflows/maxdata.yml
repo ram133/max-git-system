@@ -1,0 +1,32 @@
+name: MaxData
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [maxdata_run]
+  schedule:
+    - cron: "5 */4 * * *"
+
+jobs:
+  process-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - run: node scripts/data-pipeline.js
+
+      - run: |
+          git config user.name "maxsuite"
+          git config user.email "actions@github.com"
+          git add data/
+          git commit -m "Data pipeline updated by MaxData"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
