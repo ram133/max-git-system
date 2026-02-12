@@ -1,0 +1,22 @@
+name: maxsuite
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  run-suite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run suite
+        env:
+          MAXSYSTEM_PAT: ${{ secrets.MAXSYSTEM_PAT }}
+        run: |
+          echo "Running maxsuite..."
+          echo "Token available: $([[ -n "$MAXSYSTEM_PAT" ]] && echo yes || echo no)"
+          echo "Suite complete."
