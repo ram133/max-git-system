@@ -1,0 +1,49 @@
+.github/workflows/unzip-max-system.yml
+name: Unzip MAX System
+
+on:
+  push:
+    paths:
+      - "incoming/*.zip"
+      - "*.zip"
+
+jobs:
+  unzip-and-commit:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Find ZIP file
+        id: find_zip
+        run: |
+          ZIP_FILE=$(ls incoming/*.zip 2>/dev/null || ls *.zip 2>/dev/null || echo "")
+          if [ -z "$ZIP_FILE" ]; then
+            echo "No ZIP file found."
+            exit 1
+          fi
+          echo "zip_file=$ZIP_FILE" >> $GITHUB_OUTPUT
+
+      - name: Unzip into repo root
+        run: |
+          unzip -o "${{ steps.find_zip.outputs.zip_file }}" -d .
+          rm "${{ steps.find_zip.outputs.zip_file }}"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit changes
+        run: |
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Unpack MAX system from ZIP"
+          git push
