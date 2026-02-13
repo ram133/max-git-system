@@ -1,0 +1,136 @@
+name: Generate MAX Orchestrator
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create orchestrator structure
+        run: |
+          mkdir -p max-orchestrator/{src/{modules,state,graph,user,io,autogen,experience,orchestrator},public/icons,data,.github/workflows}
+
+      - name: Write core files
+        run: |
+          cat > max-orchestrator/.gitignore << 'EOF'
+node_modules
+dist
+.DS_Store
+*.log
+.env
+EOF
+
+          cat > max-orchestrator/tsconfig.json << 'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true
+  },
+  "include": ["src/**/*"]
+}
+EOF
+
+          cat > max-orchestrator/package.json << 'EOF'
+{
+  "name": "max-orchestrator",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "prettier": "^3.3.3"
+  }
+}
+EOF
+
+          cat > max-orchestrator/.prettierrc << 'EOF'
+{
+  "semi": true,
+  "singleQuote": true,
+  "printWidth": 100,
+  "trailingComma": "es5"
+}
+EOF
+      - name: Write index + module types
+        run: |
+          cat > max-orchestrator/src/index.ts << 'EOF'
+import { MAXOrchestrator } from "./orchestrator/MAXOrchestrator";
+import { MAXMemoryGraph } from "./graph/MAXMemoryGraph";
+import { MAXStateEngine } from "./state/MAXStateEngine";
+import { MAXUserModel } from "./user/MAXUserModel";
+import { MAXIOProtocol } from "./io/MAXIOProtocol";
+import { MAXAutogenerator } from "./autogen/MAXAutogenerator";
+import { MAXExperienceLayer } from "./experience/MAXExperienceLayer";
+import { ModuleRegistry } from "./modules/ModuleRegistry";
+
+const registry = new ModuleRegistry();
+const graph = new MAXMemoryGraph();
+const stateEngine = new MAXStateEngine();
+const userModel = new MAXUserModel(graph);
+const io = new MAXIOProtocol();
+const autogen = new MAXAutogenerator(registry, graph);
+const experience = new MAXExperienceLayer(graph, stateEngine, userModel);
+
+export const orchestrator = new MAXOrchestrator(
+  registry, graph, stateEngine, userModel, io, autogen, experience
+);
+
+export * from "./modules/types";
+export * from "./state/types";
+export * from "./user/types";
+export * from "./graph/types";
+export * from "./io/types";
+export * from "./autogen/types";
+export * from "./experience/types";
+EOF
+
+          cat > max-orchestrator/src/modules/types.ts << 'EOF'
+export type ModuleId = string;
+
+export interface ModuleInput { type: string; payload: unknown; userId: string; sessionId: string; runId?: string; metadata?: Record<string, unknown>; }
+export interface ModuleOutput { type: string; payload: unknown; userId: string; sessionId: string; runId: string; stateDelta?: Record<string, unknown>; tags?: string[]; }
+export interface ModuleContext { userId: string; sessionId: string; runId: string; state: Record<string, unknown>; dfpState: string; timestamp: string; }
+
+export interface MAXModule {
+  id: ModuleId;
+  version: string;
+  accepts: string[];
+  produces: string[];
+  tags?: string[];
+  run(input: ModuleInput, context: ModuleContext): Promise<ModuleOutput>;
+}
+EOF
+
+      - name: Write JSON database
+        run: |
+          echo '[]' > max-orchestrator/data/graph-nodes.json
+          echo '[]' > max-orchestrator/data/graph-edges.json
+          echo '{}' > max-orchestrator/data/users.json
+          echo '{}' > max-orchestrator/data/states.json
+          echo '[]' > max-orchestrator/data/runs.json
+
+      - name: Commit orchestrator
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add max-orchestrator
+          git commit -m "Generate MAX Orchestrator"
+          git push
