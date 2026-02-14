@@ -13,4 +13,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Builder Script
-        run: bash scripts/build-max-orchestrator.sh
+        run: bash scripts/build-max-orchestrator-V4.sh
