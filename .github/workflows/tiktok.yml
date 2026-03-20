@@ -1,0 +1,34 @@
+# https://github.com/ram133/max-git-system/.github/workflows/tiktok.yml
+name: TikTok Auto Upload
+
+on:
+  push:
+    paths:
+      - 'videos/**' # Triggers when you add a video to the /videos folder
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install tiktok-uploader
+
+      - name: Create Cookie File
+        run: |
+          echo '${{ secrets.TIKTOK_COOKIES }}' > cookies.json
+
+      - name: Upload to TikTok
+        run: |
+          # This script looks for the latest .mp4 in the /videos folder
+          VIDEO_PATH=$(ls -t videos/*.mp4 | head -1)
+          tiktok-uploader -v "$VIDEO_PATH" -d "Automated Upload from RayNV System" -c cookies.json
